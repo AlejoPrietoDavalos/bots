@@ -1,3 +1,7 @@
+""" FIXME: Este codigo hay que reescribirlo prolijamente
+en una clase que maneje la computadora.
+"""
+
 import pyautogui as p
 from pynput import keyboard as kb
 from PIL import ImageGrab
