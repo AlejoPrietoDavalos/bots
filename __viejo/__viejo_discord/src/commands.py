@@ -1,5 +1,5 @@
 from src.bot import DSBot
-from api_openai.conversation import ChatGPT, ListChatGPT
+from __viejo_api_openai.conversation import ChatGPT, ListChatGPT
 
 import discord
 from discord.ext.commands.context import Context

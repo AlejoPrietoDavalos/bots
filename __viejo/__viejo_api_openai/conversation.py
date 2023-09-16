@@ -1,4 +1,4 @@
-from api_openai.prompt import Prompt
+from __viejo_api_openai.prompt import Prompt
 
 import openai
 from openai.openai_object import OpenAIObject
