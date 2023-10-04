@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from dsbot.user import UserIdDS, UserNameDS
+
 from discord.ext import commands
 
 from typing import NewType
 
-AuthorId = NewType("author_id", int)
 
 
 class ContextExt(commands.Context):
@@ -19,7 +20,11 @@ class ContextExt(commands.Context):
             command = ctx.command,
             view = ctx.view
         )
+
+    @property
+    def author_id(self) -> UserIdDS:
+        return self.author.id
     
     @property
-    def author_id(self) -> AuthorId:
-        return self.author.id
+    def author_name(self) -> UserNameDS:
+        return self.author.global_name

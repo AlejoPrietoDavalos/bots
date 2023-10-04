@@ -1,6 +1,6 @@
 # Quickstart
 
-
+- Sonido bot discord.
 - Obtener el token del bot en https://discord.com/developers/applications
 - Crear el archivo `.env` y dentro colocar el token.
 ```
