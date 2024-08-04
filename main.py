@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from discord import Intents
+from discord.ext import commands
 
 from dsai.config import CfgDS
 from dsai.msg_ds import MsgDS
@@ -24,9 +25,16 @@ class DSClient(BaseClientDS):
     async def on_message(self, msg_ds: MsgDS) -> None:
         if not self.cfg_ds.is_author_allowed(msg_ds=msg_ds):
             return
+        
+        ctx = await self.get_context(msg_ds.message)
+        if ctx.command:
+            print("----> Process commands.")
+            await self.process_commands(msg_ds.message)
+            return
+        
         msgs_ds = await self.get_last_msgs_ds(msg_ds=msg_ds, leak_by_author=True)
         cfg_channel = self.cfg_ds.cfg_from_channel_id(channel_id=msg_ds.channel_id)
-        msgs_oai = self.msgs_oai_from_ds(msgs_ds=msgs_ds, cfg_channel=cfg_channel)
+        msgs_oai = await self.msgs_oai_from_ds(msgs_ds=msgs_ds, cfg_channel=cfg_channel)
 
         response = self.oai.completions.create(messages=[m.model_dump() for m in msgs_oai], model=cfg_channel.model)
         response_handler = ChatCompletionHandler(response=response)
@@ -42,4 +50,12 @@ client = DSClient(
     intents=get_intents(),
     command_prefix='!'
 )
+
+
+#@commands.has_permissions(manage_messages=True)
+@client.command(name="clear")
+async def _clear(ctx):
+    print("----> Clear all messages.")
+    await ctx.channel.purge()
+
 client.run(os.getenv('DS_TKN'))
