@@ -1,3 +1,7 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 import discord
 
 intents = discord.Intents.default()
@@ -17,4 +21,4 @@ async def on_message(message):
     if message.content.startswith('$hello'):
         await message.channel.send('Hello!')
 
-client.run('your token here')
+client.run(os.getenv("DS_TKN"))

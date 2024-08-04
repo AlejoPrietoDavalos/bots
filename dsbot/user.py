@@ -1,11 +1,8 @@
 import attr
-from attr import validators, asdict
+from attr import validators
 
-
-from typing import NewType
-
-UserIdDS = NewType("user_id_ds", int)
-UserNameDS = NewType("user_name_ds", str)
+UserIdDS = int
+UserNameDS = str
 
 @attr.s(frozen=True, hash=True)
 class UserDS:
