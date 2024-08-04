@@ -13,6 +13,14 @@ from dsai.intents import get_intents
 from dsai.client import BaseClientDS, on_message_wrapper
 from oaikit import OAI, ChatCompletionHandler
 
+LIMIT_DS_SEND_MSG = 1999
+def iter_blocks(content, block_size=LIMIT_DS_SEND_MSG):
+    for i in range(0, len(content), block_size):
+        yield content[i:i + block_size]
+
+
+
+
 class DSClient(BaseClientDS):
     def __init__(self, *, cfg_ds: CfgDS, intents: Intents, **options):
         super().__init__(cfg_ds=cfg_ds, intents=intents, **options)
@@ -38,7 +46,19 @@ class DSClient(BaseClientDS):
 
         response = self.oai.completions.create(messages=[m.model_dump() for m in msgs_oai], model=cfg_channel.model)
         response_handler = ChatCompletionHandler(response=response)
-        await self.send_message(channel=msg_ds.channel, content=response_handler.message.content)
+
+        # Por si la respuesta es demaciado grande.
+        l_partial = 0
+        for i, content_block in enumerate(iter_blocks(response_handler.message.content)):
+            l_block = len(content_block)
+            l_content = len(response_handler.message.content)
+            l_partial += l_block
+            usage_prompt = response.usage.prompt_tokens
+            usage_resp = response.usage.completion_tokens
+            usage_total = response.usage.total_tokens
+            # TODO: Poner precio en oaikit.
+            print(f"{i}. {l_partial}/{l_content} | usage | {usage_prompt}+{usage_resp}={usage_total}")
+            await self.send_message(channel=msg_ds.channel, content=content_block)
 
 
 path_cfg_ds = Path(os.getenv("PATH_CFG_DS"))
