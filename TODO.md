@@ -1,0 +1,2 @@
+- Bot dentro de llamada, stremmeando sonido.
+- Agregar `Spotipy`.
