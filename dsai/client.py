@@ -1,5 +1,6 @@
 from typing import List, Any
 from functools import wraps
+from io import BytesIO
 from abc import ABC, abstractmethod
 
 import discord
@@ -8,6 +9,7 @@ from discord import Intents
 from discord.channel import TextChannel
 from oaikit import OAIMsg, ContentText, USER, ASSISTANT
 
+import discord.ext
 from dsai.config import CfgDS, CfgChannelDS
 from dsai.msg_ds import MsgDS
 
@@ -22,7 +24,7 @@ def on_message_wrapper(func):
     return wrapper
 
 
-class BaseClientDS(discord.Client, ABC):
+class BaseClientDS(discord.ext.commands.Bot, ABC):
     """
     Properties:
     -----------
@@ -63,14 +65,22 @@ class BaseClientDS(discord.Client, ABC):
         #        continue
         return msgs_ds
 
-    def msgs_oai_from_ds(self, *, msgs_ds: List[MsgDS], cfg_channel: CfgChannelDS) -> List[OAIMsg]:
+    async def msgs_oai_from_ds(self, *, msgs_ds: List[MsgDS], cfg_channel: CfgChannelDS) -> List[OAIMsg]:
         msgs_oai = [OAIMsg.system(content=[ContentText(text=cfg_channel.ctx)])]
         for m in msgs_ds:
+            content = ""
+            if len(m.message.attachments) != 0:
+                for att in m.message.attachments:
+                    file_bytes = await att.read()
+                    with BytesIO(file_bytes) as f:
+                        content += f.read().decode("utf-8")
+            content += m.content
+
             role = USER if not m.is_bot else ASSISTANT
             if msgs_oai[-1].role == role:
-                msgs_oai[-1].content.append(ContentText(text=m.content))
+                msgs_oai[-1].content.append(ContentText(text=content))
             else:
-                msgs_oai.append(OAIMsg(role=role, content=[ContentText(text=m.content)]))
+                msgs_oai.append(OAIMsg(role=role, content=[ContentText(text=content)]))
         return msgs_oai
 
     async def send_message(self, *, channel: TextChannel, content: str) -> None:
