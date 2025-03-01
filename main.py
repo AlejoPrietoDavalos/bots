@@ -38,10 +38,12 @@ class DSClient(BaseClientDS):
         if ctx.command:
             print("----> Process commands.")
             await self.process_commands(msg_ds.message)
-            return
+            return None
         
         msgs_ds = await self.get_last_msgs_ds(msg_ds=msg_ds, leak_by_author=True)
         cfg_channel = self.cfg_ds.cfg_from_channel_id(channel_id=msg_ds.channel_id)
+        if cfg_channel is None:
+            return None
         msgs_oai = await self.msgs_oai_from_ds(msgs_ds=msgs_ds, cfg_channel=cfg_channel)
 
         response = self.oai.completions.create(messages=[m.model_dump() for m in msgs_oai], model=cfg_channel.model)
@@ -71,11 +73,25 @@ client = DSClient(
     command_prefix='!'
 )
 
+from discord.ext.commands.context import Context
 
 #@commands.has_permissions(manage_messages=True)
 @client.command(name="clear")
-async def _clear(ctx):
+async def _clear(ctx: Context):
     print("----> Clear all messages.")
     await ctx.channel.purge()
+    
+
+@client.command(name="ping")
+async def _ping(ctx: Context):
+    await ctx.channel.send("pong!")
+
+@client.command(name="list_users")
+async def _list_users(ctx: Context):
+    t = f"```\n"
+    t += f"{ctx.channel.id} - channel_id\n\n"
+    t += "\n".join([f"{member.id} - {member.name}" for i, member in enumerate(ctx.guild.members)])
+    t += "```"
+    await ctx.channel.send(t)
 
 client.run(os.getenv('DS_TKN'))

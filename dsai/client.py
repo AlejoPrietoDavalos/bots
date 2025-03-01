@@ -17,6 +17,7 @@ from dsai.msg_ds import MsgDS
 def on_message_wrapper(func):
     @wraps(func)
     async def wrapper(self, message: Message):
+        print(f"Message in: channel_id={message.channel.id}")
         msg_ds = MsgDS(message=message, user=self.user)
         if msg_ds.is_bot:
             return

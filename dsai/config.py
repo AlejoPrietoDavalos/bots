@@ -14,12 +14,16 @@ class CfgDS(BaseModel):
     channel_id2author_ids_allowed: Dict[int, CfgChannelDS]
     limit_msg: int
 
-    def cfg_from_channel_id(self, *, channel_id: int) -> CfgChannelDS:
-        return self.channel_id2author_ids_allowed[channel_id]
+    def cfg_from_channel_id(self, *, channel_id: int) -> CfgChannelDS | None:
+        if channel_id in self.channel_id2author_ids_allowed:
+            return self.channel_id2author_ids_allowed[channel_id]
+        return None
 
     def is_author_allowed(self, *, msg_ds: MsgDS) -> bool:
         cfg_channel = self.cfg_from_channel_id(channel_id=msg_ds.channel_id)
-        if msg_ds.channel_id not in self.channel_id2author_ids_allowed:
+        if cfg_channel is None:
+            return False
+        elif msg_ds.channel_id not in self.channel_id2author_ids_allowed:
             # Se verifica que el channel esté dentro de los permitidos.
             return False
         elif msg_ds.author_id not in cfg_channel.author_ids:
